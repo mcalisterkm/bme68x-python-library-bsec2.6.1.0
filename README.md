@@ -30,14 +30,9 @@ Note: Only the bsec2-6-1-0_generic_release.zip (July 2024) is supported by this 
 As of BSEC 2.6.1.0 there is support for 64bit and two 32bit architectures.
 To support multiple architectures, an environment variable is set to identify the PI architecture that you are building for.  If it is not set a 32bit ArmV6 build is carried out.
 
-# This expects an environment variable to be set to select the BSEC2 library
-# If it is not set a 32bit ArmV6 build is carried out.
-# For 64 bit PI5
-# BSEC2=64;export BSEC2; python setup.py install
-# For 32 bit PI3 or above (Inc PI Zero 2)
-# BSEC2=32; export BSEC2; python setup.py install
-# For PI Zero and early Arm V6 PI's
-# python setup.py install
+We now expect an environment variable to be set to select the BSEC2 library
+If it is not set a 32bit ArmV6 build is carried out.
+
 
 1. For 32 bit PI3 or above (Inc PI Zero 2)
 ```bash
@@ -48,8 +43,10 @@ or to install under venv use
 BSEC2=32; export BSEC2; path/to/venv/bin/python3 setup.py install
 ```
 
-2. For PI4 or PI5 running Raspbian 64 bit
-# BSEC2=64;export BSEC2; python setup.py install
+2. For PI5 running Raspbian 64 bit
+```bash
+BSEC2=64;export BSEC2; python setup.py install
+``` 
 
 ```bash
 sudo BSEC2=64; export BSEC2; python setup.py install
@@ -152,12 +149,12 @@ drwxr-xr-x  3 kpi kpi 4096 Jun 23 23:22 lib
 -rw-r--r--  1 kpi kpi  173 Jun 23 23:22 pyvenv.cfg
 ```
 
-Now copy the BoschSensortech BSEC 2.5 (bsec_v2-5-0-2) into the bmx68x repo clone. 
+Now copy the BoschSensortech BSEC 2.6.1 () into the bmx68x repo clone. 
 It should look like this.
 
 ```
-(68X)<user>:~/68X $ cd bme68x-python-library-bsec2.5.0.0/
-(68X) kpi@pi-3:~/68X/bme68x-python-library-bsec2.5.0.0 $ ls -l
+(68X)<user>:~/68X $ cd bme68x-python-library-bsec2.6.1.0/
+(68X) kpi@pi-3:~/68X/bme68x-python-library-bsec2.6.1.0 $ ls -l
 total 176
 -rw-r--r-- 1 kpi kpi  2863 Jun 23 23:32 bme68xConstants.py
 drwxr-xr-x 2 kpi kpi  4096 Jun 23 23:32 bme68x.egg-info
@@ -182,7 +179,7 @@ drwxr-xr-x 3 kpi kpi  4096 Jun 23 23:32 tools
 From here run the installer with the 32bit env set for my Pi 4 board and 32 bit raspbian.
 
 ```
-(68X) <user>:~/68X/bme68x-python-library-bsec2.5.0.0 $ BSEC2=32; export BSEC2; python3 setup.py install
+(68X) <user>:~/68X/bme68x-python-library-bsec2.6.1.0 $ BSEC2=32; export BSEC2; python3 setup.py install
 ```
 
 There are a bunch of warnings about unused variables, and it should complete with the last few lines looking like this:
@@ -190,22 +187,22 @@ There are a bunch of warnings about unused variables, and it should complete wit
 Installed /home/kpi/68X/lib/python3.11/site-packages/bme68x-1.4.0-py3.11-linux-aarch64.egg
 Processing dependencies for bme68x==1.4.0
 Finished processing dependencies for bme68x==1.4.0
-(68X) <user>:~/68X/bme68x-python-library-bsec2.5.0.0 $
+(68X) <user>:~/68X/bme68x-python-library-bsec2.6.1.0 $
 
 ```
 
 Change to the examples directory and run the forced mode example:
 ```
-(68X) <user>:~/68X/bme68x-python-library-bsec2.5.0.0 $ cd examples/
-(68X) <user>:~/68X/bme68x-python-library-bsec2.5.0.0/examples $ ls
+(68X) <user>:~/68X/bme68x-python-library-bsec2.6.1.0 $ cd examples/
+(68X) <user>:~/68X/bme68x-python-library-bsec2.6.1.0/examples $ ls
 airquality.py  conf            force_ulp.py      parallel_mode_ulp.py  pm25.py       README.md
 burn_in.py     forced_mode.py  parallel_mode.py  pm25-nolog.py         read_conf.py
-(68X) <user>:~/68X/bme68x-python-library-bsec2.5.0.0/examples $ python3 forced_mode.py 
+(68X) <user>:~/68X/bme68x-python-library-bsec2.6.1.0/examples $ python3 forced_mode.py 
 TESTING FORCED MODE WITHOUT BSEC
 INITIALIZED BME68X
 VARIANT BME688
 INITIALIZED BSEC
-BSEC VERSION: 2.5.0.2
+BSEC VERSION: 2.6.1.0
 SET HEATER CONFIG (FORCED MODE)
 {'sample_nr': 1, 'timestamp': 1807319, 'raw_temperature': 33.44466018676758, 'raw_pressure': 699.2025146484375, 'raw_humidity': 100.0, 'raw_gas': 61.77606201171875, 'status': 160}
 
@@ -213,7 +210,7 @@ TESTING FORCED MODE WITH BSEC
 INITIALIZED BME68X
 VARIANT BME688
 INITIALIZED BSEC
-BSEC VERSION: 2.5.0.2
+BSEC VERSION: 2.6.1.0
 SET BME68X CONFIG
 SET HEATER CONFIG (FORCED MODE)
 SET BME68X CONFIG
