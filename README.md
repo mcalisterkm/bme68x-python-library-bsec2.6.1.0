@@ -9,7 +9,7 @@ PI3G originally created this library, however changes/updates to support  Bosch 
 * BME Development Kit firmware v2.1.5 
 * BME AI Studio Mobile App v2.4.16 
 
-BSEC 2.4.0.0 introduced support for multiple sensors which this python wrapper does not yet support. BSEC2.6 has changes to cope with the effects of board temperature on Temp and Rh and is said to stabilise quicker.
+BSEC 2.4.0.0 introduced support for multiple sensors which this python wrapper does not yet support, as it has always been possible to run multiple instances of python with the BME68X library. BSEC2.6 has changes to cope with the effects of board temperature on Temp and Rh and is said to stabilise quicker.
 
 The original PI3G repository is available [here] (https://github.com/pi3g/bme68x-python-library) which works with the BSEC 2.0.6.1 release.
 
@@ -143,7 +143,7 @@ Next clone this repo into the virtual environment
 (68X)<user>:~/68X $ ls -l
 total 20
 drwxr-xr-x  2 kpi kpi 4096 Jun 23 23:22 bin
-drwxr-xr-x 11 kpi kpi 4096 Jun 23 23:32 bme68x-python-library-bsec2.5.0.0
+drwxr-xr-x 11 kpi kpi 4096 Jun 23 23:32 bme68x-python-library-bsec2.6.1.0
 drwxr-xr-x  3 kpi kpi 4096 Jun 23 23:22 include
 drwxr-xr-x  3 kpi kpi 4096 Jun 23 23:22 lib
 -rw-r--r--  1 kpi kpi  173 Jun 23 23:22 pyvenv.cfg
@@ -159,10 +159,10 @@ total 176
 -rw-r--r-- 1 kpi kpi  2863 Jun 23 23:32 bme68xConstants.py
 drwxr-xr-x 2 kpi kpi  4096 Jun 23 23:32 bme68x.egg-info
 -rw-r--r-- 1 kpi kpi 76995 Jun 23 23:32 bme68xmodule.c
--rw-r--r-- 1 kpi kpi   378 Jun 23 23:32 bme68x-python-library-bsec2.5.0.0.iml
+-rw-r--r-- 1 kpi kpi   378 Jun 23 23:32 bme68x-python-library-bsec2.6.1.0.iml
 drwxr-xr-x 3 kpi kpi  4096 Jun 23 23:32 BME68x-Sensor-API
 -rw-r--r-- 1 kpi kpi   571 Jun 23 23:32 bsecConstants.py
-drwxr-xr-x 6 kpi kpi  4096 Jun 23 23:32 bsec_v2-5-0-2
+drwxr-xr-x 6 kpi kpi  4096 Jun 23 23:32 bsec2-6-1-0_generic_release
 drwxr-xr-x 7 kpi kpi  4096 Jun 23 23:32 build
 drwxr-xr-x 2 kpi kpi  4096 Jun 23 23:32 dist
 -rw-r--r-- 1 kpi kpi 12843 Jun 23 23:32 Documentation.md
