@@ -3,7 +3,7 @@
 Bosch Sensortec released BSEC2 v2.6.1.0 in July 2024, and bme68x-python-library provides a Python 3.x wrapper for the binary library available from BoschSensortec. 
 BSEC2 2.6.1.0 provides two versions of the binary BSEC2, a smaller set of binaries supporting IAQ only and a larger set of binaries supporting full functionality which is the one we use here. 
 
-PI3G originally created this library, however changes/updates to support  Bosch Sensortec BSEC2 updates have been a community effort.  Each annual release is typically a breaking release with config and status files from previous versions not loading (a version header is present). Also note that there are version requirements/dependencies across the BoschSensortec software set from Bosch Sensortec to support BSEC2 2.6.1.0 
+PI3G originally created this library, however changes/updates to support  Bosch Sensortec BSEC2 updates have been a community effort.  Each annual release is typically a breaking release with config and status files from previous versions not loading (a version header is present). Also note that there are version requirements/dependencies across the software set from Bosch Sensortec to support BSEC2 2.6.1.0 
 
 * BME AI Studio v2.3.4
 * BME Development Kit firmware v2.1.5 
