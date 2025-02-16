@@ -159,7 +159,7 @@ total 176
 -rw-r--r-- 1 kpi kpi  2863 Jun 23 23:32 bme68xConstants.py
 drwxr-xr-x 2 kpi kpi  4096 Jun 23 23:32 bme68x.egg-info
 -rw-r--r-- 1 kpi kpi 76995 Jun 23 23:32 bme68xmodule.c
--rw-r--r-- 1 kpi kpi   378 Jun 23 23:32 bme68x-python-library-bsec2.6.1.0.iml
+-rw-r--r-- 1 kpi kpi   378 Jun 23 23:32 bme68x-python-library-bsec2.6.1.0
 drwxr-xr-x 3 kpi kpi  4096 Jun 23 23:32 BME68x-Sensor-API
 -rw-r--r-- 1 kpi kpi   571 Jun 23 23:32 bsecConstants.py
 drwxr-xr-x 6 kpi kpi  4096 Jun 23 23:32 bsec2-6-1-0_generic_release
