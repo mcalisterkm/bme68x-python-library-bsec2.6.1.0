@@ -3,6 +3,15 @@
 #include "structmember.h"
 #include "internal_functions.h"
 
+// Helper macro to safely set dictionary items without leaking memory
+#define DICT_SET_ITEM(dict, key, value_call) do { \
+    PyObject *_tmp_val = value_call; \
+    if (_tmp_val) { \
+        PyDict_SetItemString(dict, key, _tmp_val); \
+        Py_DECREF(_tmp_val); \
+    } \
+} while(0)
+
 #define I2C_PORT_0 "/dev/i2c-0"
 #define I2C_PORT_1 "/dev/i2c-1"
 
@@ -667,13 +676,13 @@ static PyObject *bme_get_data(BMEObject *self)
             self->bme.amb_temp = self->data[0].temperature - self->temp_offset;
 
             PyObject *pydata = PyDict_New();
-            PyDict_SetItemString(pydata, "sample_nr", Py_BuildValue("i", self->sample_count));
-            PyDict_SetItemString(pydata, "timestamp", Py_BuildValue("i", self->time_ms));
-            PyDict_SetItemString(pydata, "raw_temperature", Py_BuildValue("d", self->data[0].temperature));
-            PyDict_SetItemString(pydata, "raw_pressure", Py_BuildValue("d", self->data[0].pressure / 100));
-            PyDict_SetItemString(pydata, "raw_humidity", Py_BuildValue("d", self->data[0].humidity));
-            PyDict_SetItemString(pydata, "raw_gas", Py_BuildValue("d", self->data[0].gas_resistance / 1000));
-            PyDict_SetItemString(pydata, "status", Py_BuildValue("i", self->data[0].status));
+            DICT_SET_ITEM(pydata, "sample_nr", Py_BuildValue("i", self->sample_count));
+            DICT_SET_ITEM(pydata, "timestamp", Py_BuildValue("i", self->time_ms));
+            DICT_SET_ITEM(pydata, "raw_temperature", Py_BuildValue("d", self->data[0].temperature));
+            DICT_SET_ITEM(pydata, "raw_pressure", Py_BuildValue("d", self->data[0].pressure / 100));
+            DICT_SET_ITEM(pydata, "raw_humidity", Py_BuildValue("d", self->data[0].humidity));
+            DICT_SET_ITEM(pydata, "raw_gas", Py_BuildValue("d", self->data[0].gas_resistance / 1000));
+            DICT_SET_ITEM(pydata, "status", Py_BuildValue("i", self->data[0].status));
             return pydata;
         }
     }
@@ -711,15 +720,15 @@ static PyObject *bme_get_data(BMEObject *self)
                 {
                     PyObject *field = PyDict_New();
                     self->time_ms = pi3g_timestamp_ms();
-                    PyDict_SetItemString(field, "sample_nr", Py_BuildValue("i", self->sample_count));
-                    PyDict_SetItemString(field, "timestamp", Py_BuildValue("i", self->time_ms));
-                    PyDict_SetItemString(field, "raw_temperature", Py_BuildValue("d", self->data[i].temperature));
-                    PyDict_SetItemString(field, "raw_pressure", Py_BuildValue("d", self->data[i].pressure / 100));
-                    PyDict_SetItemString(field, "raw_humidity", Py_BuildValue("d", self->data[i].humidity));
-                    PyDict_SetItemString(field, "raw_gas", Py_BuildValue("d", self->data[i].gas_resistance / 1000));
-                    PyDict_SetItemString(field, "gas_index", Py_BuildValue("i", self->data[i].gas_index));
-                    PyDict_SetItemString(field, "meas_index", Py_BuildValue("i", self->data[i].meas_index));
-                    PyDict_SetItemString(field, "status", Py_BuildValue("i", self->data[i].status));
+                    DICT_SET_ITEM(field, "sample_nr", Py_BuildValue("i", self->sample_count));
+                    DICT_SET_ITEM(field, "timestamp", Py_BuildValue("i", self->time_ms));
+                    DICT_SET_ITEM(field, "raw_temperature", Py_BuildValue("d", self->data[i].temperature));
+                    DICT_SET_ITEM(field, "raw_pressure", Py_BuildValue("d", self->data[i].pressure / 100));
+                    DICT_SET_ITEM(field, "raw_humidity", Py_BuildValue("d", self->data[i].humidity));
+                    DICT_SET_ITEM(field, "raw_gas", Py_BuildValue("d", self->data[i].gas_resistance / 1000));
+                    DICT_SET_ITEM(field, "gas_index", Py_BuildValue("i", self->data[i].gas_index));
+                    DICT_SET_ITEM(field, "meas_index", Py_BuildValue("i", self->data[i].meas_index));
+                    DICT_SET_ITEM(field, "status", Py_BuildValue("i", self->data[i].status));
                     PyList_SetItem(pydata, self->data[i].gas_index, field);
                     self->sample_count++;
                     counter++;
@@ -1020,74 +1029,74 @@ static PyObject *bme_get_digital_nose_data(BMEObject *self)
                                 /* Iterate through the outputs and extract the relevant ones. */
                                 self->sample_count++;
                                 PyObject *bsec_data = PyDict_New();
-                                PyDict_SetItemString(bsec_data, "sample_nr", Py_BuildValue("i", self->sample_count));
-                                PyDict_SetItemString(bsec_data, "timestamp", Py_BuildValue("L", time_stamp));
+                                DICT_SET_ITEM(bsec_data, "sample_nr", Py_BuildValue("i", self->sample_count));
+                                DICT_SET_ITEM(bsec_data, "timestamp", Py_BuildValue("L", time_stamp));
                                 for (uint8_t index = 0; index < n_output; index++)
                                 {
                                     switch (bsec_outputs[index].sensor_id)
                                     {
                                     case BSEC_OUTPUT_STABILIZATION_STATUS:
-                                        PyDict_SetItemString(bsec_data, "stabilization_status", Py_BuildValue("i", bsec_outputs[index].signal));
+                                        DICT_SET_ITEM(bsec_data, "stabilization_status", Py_BuildValue("i", bsec_outputs[index].signal));
                                         break;
                                     case BSEC_OUTPUT_RUN_IN_STATUS:
-                                        PyDict_SetItemString(bsec_data, "run_in_status", Py_BuildValue("i", bsec_outputs[index].signal));
+                                        DICT_SET_ITEM(bsec_data, "run_in_status", Py_BuildValue("i", bsec_outputs[index].signal));
                                         break;
                                     case BSEC_OUTPUT_IAQ:
-                                        PyDict_SetItemString(bsec_data, "iaq", Py_BuildValue("d", bsec_outputs[index].signal));
-                                        PyDict_SetItemString(bsec_data, "iaq_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
+                                        DICT_SET_ITEM(bsec_data, "iaq", Py_BuildValue("d", bsec_outputs[index].signal));
+                                        DICT_SET_ITEM(bsec_data, "iaq_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
                                         break;
                                     case BSEC_OUTPUT_STATIC_IAQ:
-                                        PyDict_SetItemString(bsec_data, "static_iaq", Py_BuildValue("d", bsec_outputs[index].signal));
-                                        PyDict_SetItemString(bsec_data, "static_iaq_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
+                                        DICT_SET_ITEM(bsec_data, "static_iaq", Py_BuildValue("d", bsec_outputs[index].signal));
+                                        DICT_SET_ITEM(bsec_data, "static_iaq_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
                                         break;
                                     case BSEC_OUTPUT_CO2_EQUIVALENT:
-                                        PyDict_SetItemString(bsec_data, "co2_equivalent", Py_BuildValue("d", bsec_outputs[index].signal));
-                                        PyDict_SetItemString(bsec_data, "co2_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
+                                        DICT_SET_ITEM(bsec_data, "co2_equivalent", Py_BuildValue("d", bsec_outputs[index].signal));
+                                        DICT_SET_ITEM(bsec_data, "co2_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
                                         break;
                                     case BSEC_OUTPUT_BREATH_VOC_EQUIVALENT:
-                                        PyDict_SetItemString(bsec_data, "breath_voc_equivalent", Py_BuildValue("d", bsec_outputs[index].signal));
-                                        PyDict_SetItemString(bsec_data, "breath_voc_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
+                                        DICT_SET_ITEM(bsec_data, "breath_voc_equivalent", Py_BuildValue("d", bsec_outputs[index].signal));
+                                        DICT_SET_ITEM(bsec_data, "breath_voc_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
                                         break;
                                     case BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_TEMPERATURE:
-                                        PyDict_SetItemString(bsec_data, "temperature", Py_BuildValue("d", bsec_outputs[index].signal));
+                                        DICT_SET_ITEM(bsec_data, "temperature", Py_BuildValue("d", bsec_outputs[index].signal));
                                         break;
                                     case BSEC_OUTPUT_RAW_PRESSURE:
-                                        PyDict_SetItemString(bsec_data, "raw_pressure", Py_BuildValue("d", bsec_outputs[index].signal));
+                                        DICT_SET_ITEM(bsec_data, "raw_pressure", Py_BuildValue("d", bsec_outputs[index].signal));
                                         break;
                                     case BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_HUMIDITY:
-                                        PyDict_SetItemString(bsec_data, "humidity", Py_BuildValue("d", bsec_outputs[index].signal));
+                                        DICT_SET_ITEM(bsec_data, "humidity", Py_BuildValue("d", bsec_outputs[index].signal));
                                         break;
                                     case BSEC_OUTPUT_RAW_GAS:
-                                        PyDict_SetItemString(bsec_data, "raw_gas", Py_BuildValue("d", bsec_outputs[index].signal));
+                                        DICT_SET_ITEM(bsec_data, "raw_gas", Py_BuildValue("d", bsec_outputs[index].signal));
                                         break;
                                     case BSEC_OUTPUT_RAW_TEMPERATURE:
-                                        PyDict_SetItemString(bsec_data, "raw_temperature", Py_BuildValue("d", bsec_outputs[index].signal));
+                                        DICT_SET_ITEM(bsec_data, "raw_temperature", Py_BuildValue("d", bsec_outputs[index].signal));
                                         break;
                                     case BSEC_OUTPUT_RAW_HUMIDITY:
-                                        PyDict_SetItemString(bsec_data, "raw_humidity", Py_BuildValue("d", bsec_outputs[index].signal));
+                                        DICT_SET_ITEM(bsec_data, "raw_humidity", Py_BuildValue("d", bsec_outputs[index].signal));
                                         break;
                                     case BSEC_OUTPUT_GAS_PERCENTAGE:
-                                        PyDict_SetItemString(bsec_data, "gas_percentage", Py_BuildValue("d", bsec_outputs[index].signal));
-                                        PyDict_SetItemString(bsec_data, "gas_percentage_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
+                                        DICT_SET_ITEM(bsec_data, "gas_percentage", Py_BuildValue("d", bsec_outputs[index].signal));
+                                        DICT_SET_ITEM(bsec_data, "gas_percentage_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
                                         break;
                                     case BSEC_OUTPUT_RAW_GAS_INDEX:
-                                        PyDict_SetItemString(bsec_data, "raw_gas_index", Py_BuildValue("d", bsec_outputs[index].signal));
+                                        DICT_SET_ITEM(bsec_data, "raw_gas_index", Py_BuildValue("d", bsec_outputs[index].signal));
                                         break;
                                     case BSEC_OUTPUT_GAS_ESTIMATE_1:
-                                        PyDict_SetItemString(bsec_data, "gas_estimate_1", Py_BuildValue("d", bsec_outputs[index].signal));
-                                        PyDict_SetItemString(bsec_data, "gas_estimate_1_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
+                                        DICT_SET_ITEM(bsec_data, "gas_estimate_1", Py_BuildValue("d", bsec_outputs[index].signal));
+                                        DICT_SET_ITEM(bsec_data, "gas_estimate_1_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
                                         break;
                                     case BSEC_OUTPUT_GAS_ESTIMATE_2:
-                                        PyDict_SetItemString(bsec_data, "gas_estimate_2", Py_BuildValue("d", bsec_outputs[index].signal));
-                                        PyDict_SetItemString(bsec_data, "gas_estimate_2_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
+                                        DICT_SET_ITEM(bsec_data, "gas_estimate_2", Py_BuildValue("d", bsec_outputs[index].signal));
+                                        DICT_SET_ITEM(bsec_data, "gas_estimate_2_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
                                         break;
                                     case BSEC_OUTPUT_GAS_ESTIMATE_3:
-                                        PyDict_SetItemString(bsec_data, "gas_estimate_3", Py_BuildValue("d", bsec_outputs[index].signal));
-                                        PyDict_SetItemString(bsec_data, "gas_estimate_3_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
+                                        DICT_SET_ITEM(bsec_data, "gas_estimate_3", Py_BuildValue("d", bsec_outputs[index].signal));
+                                        DICT_SET_ITEM(bsec_data, "gas_estimate_3_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
                                         break;
                                     case BSEC_OUTPUT_GAS_ESTIMATE_4:
-                                        PyDict_SetItemString(bsec_data, "gas_estimate_4", Py_BuildValue("d", bsec_outputs[index].signal));
-                                        PyDict_SetItemString(bsec_data, "gas_estimate_4_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
+                                        DICT_SET_ITEM(bsec_data, "gas_estimate_4", Py_BuildValue("d", bsec_outputs[index].signal));
+                                        DICT_SET_ITEM(bsec_data, "gas_estimate_4_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
                                         break;
                                     default:
                                         continue;
@@ -1278,74 +1287,74 @@ static PyObject *bme_get_bsec_data(BMEObject *self)
                         // Read processed data into python Dict pydata
                         /* Iterate through the outputs and extract the relevant ones. */
                         self->sample_count++;
-                        PyDict_SetItemString(bsec_data, "sample_nr", Py_BuildValue("i", self->sample_count));
-                        PyDict_SetItemString(bsec_data, "timestamp", Py_BuildValue("L", time_stamp));
+                        DICT_SET_ITEM(bsec_data, "sample_nr", Py_BuildValue("i", self->sample_count));
+                        DICT_SET_ITEM(bsec_data, "timestamp", Py_BuildValue("L", time_stamp));
                         for (uint8_t index = 0; index < n_output; index++)
                         {
                             switch (bsec_outputs[index].sensor_id)
                             {
                             case BSEC_OUTPUT_STABILIZATION_STATUS:
-                                PyDict_SetItemString(bsec_data, "stabilization_status", Py_BuildValue("i", bsec_outputs[index].signal));
+                                DICT_SET_ITEM(bsec_data, "stabilization_status", Py_BuildValue("i", bsec_outputs[index].signal));
                                 break;
                             case BSEC_OUTPUT_RUN_IN_STATUS:
-                                PyDict_SetItemString(bsec_data, "run_in_status", Py_BuildValue("i", bsec_outputs[index].signal));
+                                DICT_SET_ITEM(bsec_data, "run_in_status", Py_BuildValue("i", bsec_outputs[index].signal));
                                 break;
                             case BSEC_OUTPUT_IAQ:
-                                PyDict_SetItemString(bsec_data, "iaq", Py_BuildValue("d", bsec_outputs[index].signal));
-                                PyDict_SetItemString(bsec_data, "iaq_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
+                                DICT_SET_ITEM(bsec_data, "iaq", Py_BuildValue("d", bsec_outputs[index].signal));
+                                DICT_SET_ITEM(bsec_data, "iaq_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
                                 break;
                             case BSEC_OUTPUT_STATIC_IAQ:
-                                PyDict_SetItemString(bsec_data, "static_iaq", Py_BuildValue("d", bsec_outputs[index].signal));
-                                PyDict_SetItemString(bsec_data, "static_iaq_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
+                                DICT_SET_ITEM(bsec_data, "static_iaq", Py_BuildValue("d", bsec_outputs[index].signal));
+                                DICT_SET_ITEM(bsec_data, "static_iaq_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
                                 break;
                             case BSEC_OUTPUT_CO2_EQUIVALENT:
-                                PyDict_SetItemString(bsec_data, "co2_equivalent", Py_BuildValue("d", bsec_outputs[index].signal));
-                                PyDict_SetItemString(bsec_data, "co2_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
+                                DICT_SET_ITEM(bsec_data, "co2_equivalent", Py_BuildValue("d", bsec_outputs[index].signal));
+                                DICT_SET_ITEM(bsec_data, "co2_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
                                 break;
                             case BSEC_OUTPUT_BREATH_VOC_EQUIVALENT:
-                                PyDict_SetItemString(bsec_data, "breath_voc_equivalent", Py_BuildValue("d", bsec_outputs[index].signal));
-                                PyDict_SetItemString(bsec_data, "breath_voc_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
+                                DICT_SET_ITEM(bsec_data, "breath_voc_equivalent", Py_BuildValue("d", bsec_outputs[index].signal));
+                                DICT_SET_ITEM(bsec_data, "breath_voc_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
                                 break;
                             case BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_TEMPERATURE:
-                                PyDict_SetItemString(bsec_data, "temperature", Py_BuildValue("d", bsec_outputs[index].signal));
+                                DICT_SET_ITEM(bsec_data, "temperature", Py_BuildValue("d", bsec_outputs[index].signal));
                                 break;
                             case BSEC_OUTPUT_RAW_PRESSURE:
-                                PyDict_SetItemString(bsec_data, "raw_pressure", Py_BuildValue("d", bsec_outputs[index].signal));
+                                DICT_SET_ITEM(bsec_data, "raw_pressure", Py_BuildValue("d", bsec_outputs[index].signal));
                                 break;
                             case BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_HUMIDITY:
-                                PyDict_SetItemString(bsec_data, "humidity", Py_BuildValue("d", bsec_outputs[index].signal));
+                                DICT_SET_ITEM(bsec_data, "humidity", Py_BuildValue("d", bsec_outputs[index].signal));
                                 break;
                             case BSEC_OUTPUT_RAW_GAS:
-                                PyDict_SetItemString(bsec_data, "raw_gas", Py_BuildValue("d", bsec_outputs[index].signal));
+                                DICT_SET_ITEM(bsec_data, "raw_gas", Py_BuildValue("d", bsec_outputs[index].signal));
                                 break;
                             case BSEC_OUTPUT_RAW_TEMPERATURE:
-                                PyDict_SetItemString(bsec_data, "raw_temperature", Py_BuildValue("d", bsec_outputs[index].signal));
+                                DICT_SET_ITEM(bsec_data, "raw_temperature", Py_BuildValue("d", bsec_outputs[index].signal));
                                 break;
                             case BSEC_OUTPUT_RAW_HUMIDITY:
-                                PyDict_SetItemString(bsec_data, "raw_humidity", Py_BuildValue("d", bsec_outputs[index].signal));
+                                DICT_SET_ITEM(bsec_data, "raw_humidity", Py_BuildValue("d", bsec_outputs[index].signal));
                                 break;
                             case BSEC_OUTPUT_GAS_PERCENTAGE:
-                                PyDict_SetItemString(bsec_data, "gas_percentage", Py_BuildValue("d", bsec_outputs[index].signal));
-                                PyDict_SetItemString(bsec_data, "gas_percentage_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
+                                DICT_SET_ITEM(bsec_data, "gas_percentage", Py_BuildValue("d", bsec_outputs[index].signal));
+                                DICT_SET_ITEM(bsec_data, "gas_percentage_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
                                 break;
                             case BSEC_OUTPUT_RAW_GAS_INDEX:
-                                PyDict_SetItemString(bsec_data, "raw_gas_index", Py_BuildValue("d", bsec_outputs[index].signal));
+                                DICT_SET_ITEM(bsec_data, "raw_gas_index", Py_BuildValue("d", bsec_outputs[index].signal));
                                 break;
                             case BSEC_OUTPUT_GAS_ESTIMATE_1:
-                                PyDict_SetItemString(bsec_data, "gas_estimate_1", Py_BuildValue("d", bsec_outputs[index].signal));
-                                PyDict_SetItemString(bsec_data, "gas_estimate_1_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
+                                DICT_SET_ITEM(bsec_data, "gas_estimate_1", Py_BuildValue("d", bsec_outputs[index].signal));
+                                DICT_SET_ITEM(bsec_data, "gas_estimate_1_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
                                 break;
                             case BSEC_OUTPUT_GAS_ESTIMATE_2:
-                                PyDict_SetItemString(bsec_data, "gas_estimate_2", Py_BuildValue("d", bsec_outputs[index].signal));
-                                PyDict_SetItemString(bsec_data, "gas_estimate_2_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
+                                DICT_SET_ITEM(bsec_data, "gas_estimate_2", Py_BuildValue("d", bsec_outputs[index].signal));
+                                DICT_SET_ITEM(bsec_data, "gas_estimate_2_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
                                 break;
                             case BSEC_OUTPUT_GAS_ESTIMATE_3:
-                                PyDict_SetItemString(bsec_data, "gas_estimate_3", Py_BuildValue("d", bsec_outputs[index].signal));
-                                PyDict_SetItemString(bsec_data, "gas_estimate_3_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
+                                DICT_SET_ITEM(bsec_data, "gas_estimate_3", Py_BuildValue("d", bsec_outputs[index].signal));
+                                DICT_SET_ITEM(bsec_data, "gas_estimate_3_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
                                 break;
                             case BSEC_OUTPUT_GAS_ESTIMATE_4:
-                                PyDict_SetItemString(bsec_data, "gas_estimate_4", Py_BuildValue("d", bsec_outputs[index].signal));
-                                PyDict_SetItemString(bsec_data, "gas_estimate_4_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
+                                DICT_SET_ITEM(bsec_data, "gas_estimate_4", Py_BuildValue("d", bsec_outputs[index].signal));
+                                DICT_SET_ITEM(bsec_data, "gas_estimate_4_accuracy", Py_BuildValue("i", bsec_outputs[index].accuracy));
                                 break;
                             default:
                                 continue;
