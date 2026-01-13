@@ -139,7 +139,7 @@ in low-power mode the intended sample period is ~3 s (.19 + 2.8), and the differ
 measurements must not exeed 150% of 3 s which is 4.5 s (or expect 0 values to be returned).
 For ULP Mode the intended sample period is 300 sec, so do not exceed 450sec.</p>
 
-<p>The v1.3 examples typically have a get data loop testing for "null" return, seeing lots of "nulls" means the sensor was not ready.
+<p>The examples typically have a get data loop testing for "null" return, seeing lots of "nulls" means the sensor was not ready.
 Adjust your sleep() accordingly. </p>
 
 get_data()

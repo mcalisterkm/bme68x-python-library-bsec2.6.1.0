@@ -688,54 +688,66 @@ static PyObject *bme_get_data(BMEObject *self)
     }
     else
     {
-        PyObject *pydata = PyList_New(self->heatr_conf.profile_len);
-        uint8_t counter = 0;
-        while (counter < self->heatr_conf.profile_len)
+        // For PARALLEL_MODE and SEQUENTIAL_MODE
+        // In sequential mode, only a few fields (typically 3) are available per call
+        // In parallel mode, all profile_len fields are available at once
+        
+        if (self->op_mode == BME68X_PARALLEL_MODE)
         {
-            if (self->op_mode == BME68X_PARALLEL_MODE)
-            {
-                self->del_period = bme68x_get_meas_dur(BME68X_PARALLEL_MODE, &(self->conf), &(self->bme)) + (self->heatr_conf.shared_heatr_dur * 1000);
-            }
-            else if (self->op_mode == BME68X_SEQUENTIAL_MODE)
-            {
-                self->del_period = bme68x_get_meas_dur(BME68X_SEQUENTIAL_MODE, &(self->conf), &(self->bme)) + (self->heatr_conf.heatr_dur_prof[0] * 1000);
-            }
-            else
-            {
-                PyErr_SetString(bmeError, "Failed to receive data");
-                return (PyObject *)NULL;
-            }
+            self->del_period = bme68x_get_meas_dur(BME68X_PARALLEL_MODE, &(self->conf), &(self->bme)) + (self->heatr_conf.shared_heatr_dur * 1000);
             self->bme.delay_us(self->del_period, self->bme.intf_ptr);
+        }
+        else if (self->op_mode == BME68X_SEQUENTIAL_MODE)
+        {
+            self->del_period = bme68x_get_meas_dur(BME68X_SEQUENTIAL_MODE, &(self->conf), &(self->bme)) + (self->heatr_conf.heatr_dur_prof[0] * 1000);
+            self->bme.delay_us(self->del_period, self->bme.intf_ptr);
+        }
+        else
+        {
+            PyErr_SetString(bmeError, "Failed to receive data");
+            return (PyObject *)NULL;
+        }
 
-            self->rslt = bme68x_get_data(self->op_mode, self->data, &(self->n_fields), &(self->bme));
-            if (self->rslt < 0)
-            {
-                perror("bme68x_get_data");
-            }
+        self->rslt = bme68x_get_data(self->op_mode, self->data, &(self->n_fields), &(self->bme));
+        if (self->rslt < 0)
+        {
+            perror("bme68x_get_data");
+        }
+        
+        /* Safety check: ensure n_fields doesn't exceed buffer size */
+        if (self->n_fields > 3)
+        {
+            self->n_fields = 3;
+        }
 
-            /* Check if rslt == BME68X_OK, report or handle if otherwise */
-            for (uint8_t i = 0; i < self->n_fields; i++)
+        /* Create list and add all valid fields returned */
+        PyObject *pydata = PyList_New(0);
+        for (uint8_t i = 0; i < self->n_fields; i++)
+        {
+            if (self->data[i].status == BME68X_VALID_DATA)
             {
-                if (self->data[i].status == BME68X_VALID_DATA)
-                {
-                    PyObject *field = PyDict_New();
-                    self->time_ms = pi3g_timestamp_ms();
-                    DICT_SET_ITEM(field, "sample_nr", Py_BuildValue("i", self->sample_count));
-                    DICT_SET_ITEM(field, "timestamp", Py_BuildValue("i", self->time_ms));
-                    DICT_SET_ITEM(field, "raw_temperature", Py_BuildValue("d", self->data[i].temperature));
-                    DICT_SET_ITEM(field, "raw_pressure", Py_BuildValue("d", self->data[i].pressure / 100));
-                    DICT_SET_ITEM(field, "raw_humidity", Py_BuildValue("d", self->data[i].humidity));
-                    DICT_SET_ITEM(field, "raw_gas", Py_BuildValue("d", self->data[i].gas_resistance / 1000));
-                    DICT_SET_ITEM(field, "gas_index", Py_BuildValue("i", self->data[i].gas_index));
-                    DICT_SET_ITEM(field, "meas_index", Py_BuildValue("i", self->data[i].meas_index));
-                    DICT_SET_ITEM(field, "status", Py_BuildValue("i", self->data[i].status));
-                    PyList_SetItem(pydata, self->data[i].gas_index, field);
-                    self->sample_count++;
-                    counter++;
-                }
+                PyObject *field = PyDict_New();
+                self->time_ms = pi3g_timestamp_ms();
+                DICT_SET_ITEM(field, "sample_nr", Py_BuildValue("i", self->sample_count));
+                DICT_SET_ITEM(field, "timestamp", Py_BuildValue("i", self->time_ms));
+                DICT_SET_ITEM(field, "raw_temperature", Py_BuildValue("d", self->data[i].temperature));
+                DICT_SET_ITEM(field, "raw_pressure", Py_BuildValue("d", self->data[i].pressure / 100));
+                DICT_SET_ITEM(field, "raw_humidity", Py_BuildValue("d", self->data[i].humidity));
+                DICT_SET_ITEM(field, "raw_gas", Py_BuildValue("d", self->data[i].gas_resistance / 1000));
+                DICT_SET_ITEM(field, "gas_index", Py_BuildValue("i", self->data[i].gas_index));
+                DICT_SET_ITEM(field, "meas_index", Py_BuildValue("i", self->data[i].meas_index));
+                DICT_SET_ITEM(field, "status", Py_BuildValue("i", self->data[i].status));
+                PyList_Append(pydata, field);
+                Py_DECREF(field);
+                self->sample_count++;
             }
         }
-        self->bme.amb_temp = self->data[0].temperature - self->temp_offset;
+        
+        if (self->n_fields > 0)
+        {
+            self->bme.amb_temp = self->data[0].temperature - self->temp_offset;
+        }
+        
         return pydata;
     }
     return Py_BuildValue("s", "Failed to get data");
