@@ -5,11 +5,12 @@ BSEC2 2.6.1.0 provides two versions of the binary BSEC2, a smaller set of binari
 
 PI3G originally created this library, however changes/updates to support  Bosch Sensortec BSEC2 updates have been a community effort.  Each annual release is typically a breaking release with config and status files from previous versions not loading (a version header is present). Also note that there are version requirements/dependencies across the software set from Bosch Sensortec to support BSEC2 2.6.1.0 
 
-* BME AI Studio v2.3.4
+* BME AI Studio v2.3.4 or later
 * BME Development Kit firmware v2.1.5 
-* BME AI Studio Mobile App v2.4.16 
+* BME AI Studio Mobile App v2.4.16 or later
 
-BSEC 2.4.0.0 introduced support for multiple sensors which this python wrapper does not yet support, as it has always been possible to run multiple instances of python with the BME68X library. BSEC2.6 has changes to cope with the effects of board temperature on Temp and Rh and is said to stabilise quicker.
+BSEC 2.4.0.0 introduced support for multiple sensors which this python wrapper does not support, as it has always been possible to run multiple instances of python with the BME68X library. 
+BSEC2.6 has changes to cope with the effects of board temperature on Temp and Rh and is said to stabilise quicker.
 
 The original PI3G repository is available [here] (https://github.com/pi3g/bme68x-python-library) which works with the BSEC 2.0.6.1 release.
 
