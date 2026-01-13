@@ -52,7 +52,7 @@ bme68x = Extension('bme68x',
                    sources=['bme68xmodule.c', 'BME68x-Sensor-API/bme68x.c', 'internal_functions.c'])
 
 setup(name='bme68x',
-      version='1.4.0',
+      version='2.6.1',
       description='Python interface for BME68X sensor and BSEC',
       long_description=README,
       long_description_content_type='text/markdown',
