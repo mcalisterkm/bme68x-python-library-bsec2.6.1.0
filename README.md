@@ -1,16 +1,17 @@
 # BME68X and BSEC2.6.0.1 for Python
 
-Bosch Sensortec released BSEC2 v2.6.1.0 in July 2024, and bme68x-python-library provides a Python 3.x wrapper for the binary library available from BoschSensortec. 
-BSEC2 2.6.1.0 provides two versions of the binary BSEC2, a smaller set of binaries supporting IAQ only and a larger set of binaries supporting full functionality which is the one we use here. 
+Bosch Sensortec released BSEC2 v2.6.1.0 in July 2024, and bme68x-python-library provides a Python wrapper for the BSEC2 binary library available from BoschSensortec and the BME68x API. 
+BSEC2 2.6.1.0 provides two versions of the binary BSEC2, a smaller set of binaries supporting IAQ only and a larger set of binaries supporting full AI functionality which is the one we use here. 
 
-PI3G originally created this library, however changes/updates to support  Bosch Sensortec BSEC2 updates have been a community effort.  Each annual release is typically a breaking release with config and status files from previous versions not loading (a version header is present). Also note that there are version requirements/dependencies across the software set from Bosch Sensortec to support BSEC2 2.6.1.0 
+PI3G originally created this library, however changes/updates to support  Bosch Sensortec BSEC2 updates have been a community effort.  BSEC2 2.6.1.0 is a final release from BOSCH Sensortec and is stable. At the end of 2025 I have made updates to improve reference counting in the Python C interface, which has fixed a number of memory leaks and makes it worthwile to refresh your install.
+Also note that there are version requirements/dependencies across the software set from Bosch Sensortec to support BSEC2 2.6.1.0 
 
 * BME AI Studio v2.3.4 or later
 * BME Development Kit firmware v2.1.5 
 * BME AI Studio Mobile App v2.4.16 or later
 
 BSEC 2.4.0.0 introduced support for multiple sensors which this python wrapper does not support, as it has always been possible to run multiple instances of python with the BME68X library. 
-BSEC2.6 has changes to cope with the effects of board temperature on Temp and Rh and is said to stabilise quicker.
+BSEC2.6 has changes to cope with the effects of board temperature on Temp and Rh and is said to stabilise quicker. 
 
 The original PI3G repository is available [here] (https://github.com/pi3g/bme68x-python-library) which works with the BSEC 2.0.6.1 release.
 
@@ -29,7 +30,7 @@ Note: Only the bsec2-6-1-0_generic_release.zip (July 2024) is supported by this 
 
 
 As of BSEC 2.6.1.0 there is support for 64bit and two 32bit architectures.
-To support multiple architectures, an environment variable is set to identify the PI architecture that you are building for.  If it is not set a 32bit ArmV6 build is carried out.
+To support multiple architectures, an environment variable is set to identify the PI architecture that you are building for. 
 
 We now expect an environment variable to be set to select the BSEC2 library
 If it is not set a 32bit ArmV6 build is carried out.
