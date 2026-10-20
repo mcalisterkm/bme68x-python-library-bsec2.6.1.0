@@ -48,9 +48,7 @@ extern "C"
 
     int64_t pi3g_timestamp_ns();
 
-    uint32_t pi3g_timestamp_us();
-
-    uint32_t pi3g_timestamp_ms();
+    uint64_t pi3g_timestamp_ms();
 
 #ifdef BSEC
     bsec_library_return_t bsec_set_sample_rate(float sample_rate);

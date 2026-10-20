@@ -27,7 +27,7 @@ uint8_t bsec_state[BSEC_MAX_STATE_BLOB_SIZE];
 uint8_t work_buffer[BSEC_MAX_WORKBUFFER_SIZE];
 uint32_t bsec_state_len = 0;
 bsec_library_return_t bsec_status = BSEC_OK;
-const char *bsec_conf_path = "bsec_v2-5-0-2/config/bme688bme688_sel_33v_3s_4d/bsec_selectivity.config";
+const char *bsec_conf_path = "bsec2-6-1-0_generic_release/algo/bsec_IAQ_Sel/config/bme688/bme688_sel_33v_3s_4d/bsec_selectivity.config";
 FILE *bsec_conf;
 #endif
 
@@ -45,7 +45,7 @@ typedef struct
     struct bme68x_data data_backup;
     int64_t timestamp_backup;
     uint32_t del_period;
-    uint32_t time_ms;
+    uint64_t time_ms;
     uint8_t n_fields;
     uint64_t next_call;
     uint8_t last_meas_index;
@@ -260,7 +260,7 @@ static PyMemberDef bme68x_members[] = {
     {"data", T_OBJECT_EX, offsetof(BMEObject, data), 0, "BME68X measurement data struct"},
     {"data_backup", T_OBJECT_EX, offsetof(BMEObject, data_backup), 0, "data backup in case of invalid data"},
     {"del_period", T_ULONG, offsetof(BMEObject, del_period), 0, "delay period"},
-    {"time_ms", T_ULONG, offsetof(BMEObject, time_ms), 0, "millisecond precision time stamp"},
+    {"time_ms", T_ULONGLONG, offsetof(BMEObject, time_ms), 0, "millisecond precision monotonic time stamp"},
     {"n_fields", T_UBYTE, offsetof(BMEObject, n_fields), 0, "number of data fields"},
     {"next_call", T_LONGLONG, offsetof(BMEObject, next_call), 0, "nanosecond timestamp of next bsec_sensore_control call"},
     {"last_meas_index", T_UBYTE, offsetof(BMEObject, last_meas_index), 0, "index to track measurement order"},
@@ -471,6 +471,13 @@ static PyObject *bme_get_chip_id(BMEObject *self)
     return Py_BuildValue("i", self->bme.chip_id);
 }
 
+static PyObject *bme_sleep_mode(BMEObject *self)
+{
+    /* Stops the heater without resetting the sensor. Call set_heatr_conf() to resume. */
+    self->rslt = bme68x_set_op_mode(BME68X_SLEEP_MODE, &(self->bme));
+    return Py_BuildValue("i", self->rslt);
+}
+
 static PyObject *bme_close_i2c(BMEObject *self)
 {
     return Py_BuildValue("i", close(*((uint8_t *)self->bme.intf_ptr)));
@@ -656,7 +663,21 @@ static PyObject *bme_set_heatr_conf(BMEObject *self, PyObject *args)
 
 static PyObject *bme_get_data(BMEObject *self)
 {
-    self->rslt = bme68x_set_op_mode(self->op_mode, &(self->bme));
+    /* Parallel/sequential mode run continuously: re-setting the mode on every call
+       restarts the measurement cycle so no heat-stable data is ever returned. */
+    uint8_t current_mode = BME68X_SLEEP_MODE;
+    if (self->op_mode != BME68X_FORCED_MODE)
+    {
+        bme68x_get_op_mode(&current_mode, &(self->bme));
+    }
+    if (self->op_mode == BME68X_FORCED_MODE || current_mode != self->op_mode)
+    {
+        self->rslt = bme68x_set_op_mode(self->op_mode, &(self->bme));
+    }
+    else
+    {
+        self->rslt = BME68X_OK;
+    }
 
     if (self->rslt != BME68X_OK)
     {
@@ -677,7 +698,7 @@ static PyObject *bme_get_data(BMEObject *self)
 
             PyObject *pydata = PyDict_New();
             DICT_SET_ITEM(pydata, "sample_nr", Py_BuildValue("i", self->sample_count));
-            DICT_SET_ITEM(pydata, "timestamp", Py_BuildValue("i", self->time_ms));
+            DICT_SET_ITEM(pydata, "timestamp", Py_BuildValue("K", (unsigned long long)self->time_ms));
             DICT_SET_ITEM(pydata, "raw_temperature", Py_BuildValue("d", self->data[0].temperature));
             DICT_SET_ITEM(pydata, "raw_pressure", Py_BuildValue("d", self->data[0].pressure / 100));
             DICT_SET_ITEM(pydata, "raw_humidity", Py_BuildValue("d", self->data[0].humidity));
@@ -729,7 +750,7 @@ static PyObject *bme_get_data(BMEObject *self)
                 PyObject *field = PyDict_New();
                 self->time_ms = pi3g_timestamp_ms();
                 DICT_SET_ITEM(field, "sample_nr", Py_BuildValue("i", self->sample_count));
-                DICT_SET_ITEM(field, "timestamp", Py_BuildValue("i", self->time_ms));
+                DICT_SET_ITEM(field, "timestamp", Py_BuildValue("K", (unsigned long long)self->time_ms));
                 DICT_SET_ITEM(field, "raw_temperature", Py_BuildValue("d", self->data[i].temperature));
                 DICT_SET_ITEM(field, "raw_pressure", Py_BuildValue("d", self->data[i].pressure / 100));
                 DICT_SET_ITEM(field, "raw_humidity", Py_BuildValue("d", self->data[i].humidity));
@@ -1651,6 +1672,7 @@ static PyMethodDef bme68x_methods[] = {
     {"get_sensor_id", (PyCFunction)bme_get_sensor_id, METH_NOARGS, "Get unique sensor id"},
     {"set_temp_offset", (PyCFunction)bme_set_temp_offset, METH_VARARGS, "Set temperature offset"},
     {"get_chip_id", (PyCFunction)bme_get_chip_id, METH_NOARGS, "Get the chip ID"},
+    {"sleep_mode", (PyCFunction)bme_sleep_mode, METH_NOARGS, "Put the sensor into sleep mode (heater off) without a reset"},
     {"close_i2c", (PyCFunction)bme_close_i2c, METH_NOARGS, "Close the I2C bus"},
     {"open_i2c", (PyCFunction)bme_open_i2c, METH_VARARGS, "Open the I2C bus and connect to I2C address"},
     {"get_variant", (PyCFunction)bme_get_variant, METH_NOARGS, "Return string representing variant (BME680 or BME688)"},

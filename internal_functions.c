@@ -173,14 +173,9 @@ int64_t pi3g_timestamp_ns()
     return time_ns;
 }
 
-uint32_t pi3g_timestamp_us()
+uint64_t pi3g_timestamp_ms()
 {
-    return (uint32_t)(pi3g_timestamp_ns() / 1000);
-}
-
-uint32_t pi3g_timestamp_ms()
-{
-    return (uint32_t)(pi3g_timestamp_us() / 1000);
+    return (uint64_t)(pi3g_timestamp_ns() / 1000000);
 }
 
 #ifdef BSEC
