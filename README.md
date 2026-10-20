@@ -12,6 +12,7 @@ Also note that there are version requirements/dependencies across the software s
 
 BSEC 2.4.0.0 introduced support for multiple sensors which this python wrapper does not support, as it has always been possible to run multiple instances of python with the BME68X library. 
 BSEC2.6 has changes to cope with the effects of board temperature on Temp and Rh and is said to stabilise quicker. 
+In October 2026 the tools folder has been reworked to support data recording compatible with AI Studio, and included examples of the full workflow: data recording, model generation, scanning using the AI-MODEL. 
 
 The original PI3G repository is available [here] (https://github.com/pi3g/bme68x-python-library) which works with the BSEC 2.0.6.1 release.
 
